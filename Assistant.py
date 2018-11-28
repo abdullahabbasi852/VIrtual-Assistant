@@ -10,20 +10,14 @@ import smtplib
 import requests
 from datetime import datetime
 from weather import Weather
-import pyperclip
-import win32com.client
 import pyttsx3
 import random
 
-#shell = win32com.client.Dispatch("WScript.Shell")
 
-
-engine = pyttsx3.init()
-engine.say('Good morning.')
-engine.runAndWait()
-engine.say('Hello there!!')
-engine.runAndWait()
-
+def speak(a = "No Text Assigned"):
+    engine = pyttsx3.init()
+    engine.say(a)
+    engine.runAndWait()
 
 def talkToMe(audio):
     "speaks audio passed as argument"
@@ -32,7 +26,9 @@ def talkToMe(audio):
         os.system("say " + audio)
 
 def greetings():
-    print 'Random'
+    greet = ['hola', 'hello', 'hi', 'Hi', 'hey!','hey']
+    r_g = random.choice(greet)
+    speak(str(r_g))
 
 def myCommand():
     "listens for commands"
@@ -42,6 +38,7 @@ def myCommand():
     with sr.Microphone() as source:
         print('Ready...')
         r.pause_threshold = 1
+        r.energy_threshold = 2000
         r.adjust_for_ambient_noise(source, duration=1)
         audio = r.listen(source)
 
@@ -57,8 +54,7 @@ def myCommand():
 
 
 def assistant(command):
-    "if statements for executing commands"
-
+    
     if 'open reddit' in command:
         reg_ex = re.search('open reddit (.*)', command)
         url = 'https://www.reddit.com/'
@@ -153,9 +149,9 @@ def assistant(command):
             r = requests.get("http://api.openweathermap.org/data/2.5/weather?q="+city+"&APPID=2f5f6412c3022096d03d549c4dc30ea9").json()
             fd = r['weather'][0]['description']
             t = (r['main']['temp'])-273.15
-            talkToMe('The Current Weather in '+city+' is '+fd+'\nThe tempeture is '+str(t)+'C')
-            engine.say('The Current Weather in '+city+' is '+fd+'\nThe tempeture is '+str(t)+'Celcius')
-            engine.runAndWait()
+            send = 'There is '+fd+' in '+city+'\nThe temperature is '+str(t)+'C'
+            talkToMe(send)
+            speak(send)
 
     elif 'email' in command:
         email_to = input('Enter Email:')
@@ -164,13 +160,12 @@ def assistant(command):
         server = smtplib.SMTP('smtp.gmail.com',587)
         server.starttls()
         server.login(email_user,'Concepts05')
-        #message = 'python mail'
         server.sendmail(email_user,email_to,message)
         server.quit()
         print "Done"
 
 talkToMe('I am ready for your command')
 
-
+greetings()
 while True:
     assistant(myCommand())
