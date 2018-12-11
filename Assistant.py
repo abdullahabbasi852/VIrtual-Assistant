@@ -12,6 +12,7 @@ from datetime import datetime
 from weather import Weather
 import pyttsx3
 import random
+from tkinter import *
 
 
 def speak(a = "No Text Assigned"):
@@ -36,7 +37,7 @@ def myCommand():
     r = sr.Recognizer()
 
     with sr.Microphone() as source:
-        print('Ready...')
+        print('Listening...')
         r.pause_threshold = 1
         r.energy_threshold = 2000
         r.adjust_for_ambient_noise(source, duration=1)
@@ -121,8 +122,10 @@ def assistant(command):
                 )
         if res.status_code == requests.codes.ok:
             talkToMe(str(res.json()['joke']))
+            speak(str(res.json()['joke']))
         else:
             talkToMe('oops!I ran out of jokes')
+            speak('oops!I ran out of jokes')
 
     elif 'current time' in command:                                                                        
             now = datetime.now()
@@ -130,20 +133,21 @@ def assistant(command):
             minute = now.minute
             if hour < 12:
                 print hour,":",minute,"AM"
-                print("Good morning, what can I help you with?")
+                speak(str(hour,":",minute,"AM"))
             if hour == 12:
                 hour,":",minute,"PM"
-                print("Good day, what can I help you with?")
+                speak(str(hour,":",minute,"PM"))
             if hour > 12:
                 if hour < 18:
                     hour,":",minute,"PM"
-                    print("Good afternoon, what can I help you with?")
+                    speak(str(hour,":",minute,"PM"))
                 if hour >= 18:
                     hour,":",minute,"AM"
-                    print("Good evening, what can I help you with?")
+                    speak(str(hour,":",minute,"AM"))
     
-    elif 'current weather in' in command:
+    elif 'temperature' or 'current weather in' or 'current temperature in' in command:
         reg_ex = re.search('current weather in (.*)', command)
+        reg_ex = re.search('current temperature in (.*)', command)
         if reg_ex:
             city = reg_ex.group(1)
             r = requests.get("http://api.openweathermap.org/data/2.5/weather?q="+city+"&APPID=2f5f6412c3022096d03d549c4dc30ea9").json()
@@ -152,18 +156,37 @@ def assistant(command):
             send = 'There is '+fd+' in '+city+'\nThe temperature is '+str(t)+'C'
             talkToMe(send)
             speak(send)
+        elif reg_ex == 0 or command == 'temperature':
+            city = 'karachi'
+            r = requests.get("http://api.openweathermap.org/data/2.5/weather?q="+city+"&APPID=2f5f6412c3022096d03d549c4dc30ea9").json()
+            fd = r['weather'][0]['description']
+            t = (r['main']['temp'])-273.15
+            send = 'There is '+fd+' in '+city+'\nThe temperature is '+str(t)+'C'
+            talkToMe(send)
+            speak(send)
 
-    elif 'email' in command:
-        email_to = input('Enter Email:')
-        message = input('Enter Message:')
-        email_user = 'abdullahabbasi852@gmail.com'
+    elif 'email' or 'gmail' in command:
+        a1 = 'Enter Recepient Email:'
+        a2 = 'Enter Message:'
+        speak(a1)
+        email_to = raw_input(a1)
+        speak(a2)
+        message = raw_input(a2)
+        email_user = "abdullahabbasi852@gmail.com"
+        a3 = 'Enter Password:'
+        speak(a3)
+        email_pass = raw_input('Enter Email Password:')
         server = smtplib.SMTP('smtp.gmail.com',587)
+        server.ehlo()
         server.starttls()
-        server.login(email_user,'Concepts05')
+        server.login(email_user,email_pass)
         server.sendmail(email_user,email_to,message)
-        server.quit()
+        server.close()
         print "Done"
 
+    else:
+        talkToMe("I don't what you mean")
+    
 talkToMe('I am ready for your command')
 
 greetings()
